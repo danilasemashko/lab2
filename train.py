@@ -14,7 +14,6 @@ import time
 from tensorflow.python import keras as keras
 from tensorflow.python.keras.callbacks import LearningRateScheduler
 from tensorflow.keras.applications import EfficientNetB0
-# Avoid greedy memory allocation to allow shared GPU usage
 gpus = tf.config.experimental.list_physical_devices('GPU')
 for gpu in gpus:
   tf.config.experimental.set_memory_growth(gpu, True)
@@ -58,7 +57,6 @@ def create_dataset(filenames, batch_size):
 
 def build_model():
   inputs = tf.keras.Input(shape=(RESIZE_TO, RESIZE_TO, 3))
-  #x = tf.keras.layers.experimental.preprocessing.Normalization(inputs)
   x = EfficientNetB0(include_top=False, input_tensor=inputs, pooling='avg', weights='imagenet')(inputs)
   
   x.trainable = False
