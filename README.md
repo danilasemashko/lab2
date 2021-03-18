@@ -3,14 +3,14 @@
 -Графики обучения:
 -Для метрики качества
 
- ![alt text](loss1.jpg)
+ ![alt text](metrika1.jpg)
    
    График метрики качества
   ![SVG example](./metriks1.svg)
   
   -Для функции потерь
   
-  ![alt text](metrika1.jpg)
+  ![alt text](loss1.jpg)
   
   График функции потерь
   ![SVG example](./loss1.svg)
