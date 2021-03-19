@@ -13,7 +13,7 @@ import tensorflow as tf
 import time
 from tensorflow.python import keras as keras
 from tensorflow.python.keras.callbacks import LearningRateScheduler
-from math import exp, pow
+from math import exp
 
 # Avoid greedy memory allocation to allow shared GPU usage
 gpus = tf.config.experimental.list_physical_devices('GPU')
@@ -65,11 +65,10 @@ def build_model():
   return tf.keras.Model(inputs=inputs, outputs=outputs)
 
 
-def step_decay(epoch):
+def exp_decay(epoch):
     initial_rate = 0.1
-    drop = 0.1
-    epochs_drop = 10
-    lr = initial_rate * pow(drop, (epoch//epochs_drop)) 
+    k = 0.5
+    lr = initial_rate * exp(-k*epoch)
     print(f'{lr}')
     return lr
 
@@ -83,10 +82,11 @@ def main():
   train_size = int(TRAIN_SIZE * 0.7 / BATCH_SIZE)
   train_dataset = dataset.take(train_size)
   validation_dataset = dataset.skip(train_size)
+  LearningRateScheduler(exp_decay)
   model = build_model()
 
   model.compile(
-    optimizer=tf.optimizers.Adam(),
+    optimizer=tf.optimizers.Adam(lr=LR),
     loss=tf.keras.losses.categorical_crossentropy,
     metrics=[tf.keras.metrics.categorical_accuracy],
   )
@@ -98,7 +98,7 @@ def main():
     validation_data=validation_dataset,
     callbacks=[
       tf.keras.callbacks.TensorBoard(log_dir),
-      LearningRateScheduler(step_decay)
+      LearningRateScheduler(exp_decay)
     ]
   )
 
