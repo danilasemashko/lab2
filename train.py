@@ -67,8 +67,8 @@ def build_model():
 
 def step_decay(epoch):
     initial_rate = 0.1
-    drop = 0.5
-    epochs_drop = 5
+    drop = 0.1
+    epochs_drop = 10
     lr = initial_rate * pow(drop, (epoch//epochs_drop)) 
     print(f'{lr}')
     return lr
