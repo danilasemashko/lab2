@@ -55,10 +55,10 @@ def create_dataset(filenames, batch_size):
     .batch(batch_size)\
     .prefetch(tf.data.AUTOTUNE)
 
-tf.keras.layers.experimental.preprocessing.RandomContrast(
-    factor, seed=None, name=None, **kwargs
+tf.keras.layers.experimental.preprocessing.RandomRotation(
+    factor=(-0.2, 0.3)[-20% * 2pi, 30% * 2pi], fill_mode='reflect', interpolation='bilinear',
+    seed=None, name=None, fill_value=0.0, **kwargs
 )
-
 
 def build_model():
   inputs = tf.keras.Input(shape=(RESIZE_TO, RESIZE_TO, 3))
