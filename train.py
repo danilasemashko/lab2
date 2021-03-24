@@ -65,7 +65,7 @@ def create_dataset(filenames, batch_size):
 
 img_augmentation = Sequential(
     [
-        preprocessing.RandomRotation(factor=0.8)
+        preprocessing.RandomRotation(factor=0.1)
     ],
     name="img_augmentation",
 )
