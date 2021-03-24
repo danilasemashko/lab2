@@ -99,7 +99,7 @@ def main():
     train_dataset = dataset.take(train_size)
     validation_dataset = dataset.skip(train_size)
 
-    l_rate = LearningRateScheduler(step_decay)
+    l_rate = LearningRateScheduler(exp_decay)
     model = build_model()
     model.compile(
         optimizer=tf.optimizers.Adam(),
