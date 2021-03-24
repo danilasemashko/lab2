@@ -80,13 +80,13 @@ def build_model():
     return tf.keras.Model(inputs=inputs, outputs=outputs)
 
 
-def step_decay(epoch):
-    initial_lrate = 0.1
-    drop = 0.3
-    epochs_drop = 4.0
-    l_rate = initial_lrate * math.pow(drop, math.floor((1 + epoch) / epochs_drop))
-    print('learning rate = {}'.format(l_rate))
-    return l_rate
+def exp_decay(epoch):
+    initial_rate = 0.01
+    k = 0.3
+    lr = initial_rate * exp(-k*epoch)
+    print(f'{lr}')
+    return lr
+
 
 
 def main():
@@ -100,7 +100,7 @@ def main():
     train_dataset = dataset.take(train_size)
     validation_dataset = dataset.skip(train_size)
 
-    l_rate = LearningRateScheduler(step_decay)
+    l_rate = LearningRateScheduler(exp_decay)
     model = build_model()
     model.compile(
         optimizer=tf.optimizers.Adam(),
