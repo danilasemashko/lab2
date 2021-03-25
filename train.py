@@ -47,8 +47,7 @@ def normalize(image, label):
     return tf.image.per_image_standardization(image), label
 
 
-def bright(image, label):
-    return tf.keras.preprocessing.image.random_brightness(image, (0.5, 0.6)), label
+
 
 
 def create_dataset(filenames, batch_size):
@@ -65,7 +64,7 @@ def create_dataset(filenames, batch_size):
 
 img_augmentation = Sequential(
     [
-        preprocessing.RandomRotation(factor=0.5)
+        preprocessing.RandomRotation(factor=0.1)
     ],
     name="img_augmentation",
 )
