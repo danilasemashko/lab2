@@ -14,7 +14,6 @@ import time
 from tensorflow.python import keras as keras
 from tensorflow.python.keras.callbacks import LearningRateScheduler
 from math import exp
-import albumentations as A
 from PIL import Image
 import os
 
