@@ -14,7 +14,6 @@ import time
 from tensorflow.python import keras as keras
 from tensorflow.python.keras.callbacks import LearningRateScheduler
 from math import exp
-import os
 
 # Avoid greedy memory allocation to allow shared GPU usage
 gpus = tf.config.experimental.list_physical_devices('GPU')
@@ -43,12 +42,8 @@ def parse_proto_example(proto):
 
 def normalize(image, label):
   return tf.image.per_image_standardization(image), label
-  
-def procces_data(image, label):
-  img = tf.image.adjust_contrast(image, 3)
-  img = tf.image.adjust_brightness(img, 0.5)
-  return img, label
-  
+
+
 def create_dataset(filenames, batch_size):
   """Create dataset from tfrecords file
   :tfrecords_files: Mask to collect tfrecords file of dataset
@@ -57,13 +52,12 @@ def create_dataset(filenames, batch_size):
   return tf.data.TFRecordDataset(filenames)\
     .map(parse_proto_example, num_parallel_calls=tf.data.AUTOTUNE)\
     .cache()\
-    .map(procces_data)\
     .batch(batch_size)\
     .prefetch(tf.data.AUTOTUNE)
 
 
 def build_model():
-  inputs = tf.keras.Input(shape=(224, 224, 3))
+  inputs = tf.keras.Input(shape=(RESIZE_TO, RESIZE_TO, 3))
   model = tf.keras.applications.EfficientNetB0(include_top=False, input_tensor=inputs, weights='imagenet')
   model.trainable = False
   x = tf.keras.layers.GlobalAveragePooling2D()(model.output)
@@ -73,7 +67,7 @@ def build_model():
 
 def exp_decay(epoch):
     initial_rate = 0.1
-    k = 0.3
+    k = 0.5
     lr = initial_rate * exp(-k*epoch)
     print(f'{lr}')
     return lr
@@ -88,6 +82,7 @@ def main():
   train_size = int(TRAIN_SIZE * 0.7 / BATCH_SIZE)
   train_dataset = dataset.take(train_size)
   validation_dataset = dataset.skip(train_size)
+  LearningRateScheduler(exp_decay)
   model = build_model()
 
   model.compile(
