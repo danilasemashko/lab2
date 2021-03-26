@@ -45,7 +45,7 @@ def normalize(image, label):
   return tf.image.per_image_standardization(image), label
   
 def procces_data(image, label):
-  img = tf.image.adjust_contrast(image, 1)
+  img = tf.image.adjust_contrast(image, 3)
   img = tf.image.adjust_brightness(img, 0.5)
   return img, label
   
