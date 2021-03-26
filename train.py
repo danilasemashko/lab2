@@ -45,8 +45,8 @@ def normalize(image, label):
   return tf.image.per_image_standardization(image), label
   
 def procces_data(image, label):
-  img = tf.image.adjust_contrast(image, 2)
-  img = tf.image.adjust_brightness(img, 0.7)
+  img = tf.image.adjust_contrast(image, 1)
+  img = tf.image.adjust_brightness(img, 0.5)
   return img, label
   
 def create_dataset(filenames, batch_size):
