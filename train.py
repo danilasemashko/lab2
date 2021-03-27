@@ -13,8 +13,10 @@ import tensorflow as tf
 import time
 from tensorflow.python import keras as keras
 from tensorflow.python.keras.callbacks import LearningRateScheduler
-from tensorflow.keras.applications import EfficientNetB0
-import math
+from math import exp
+import albumentations as A
+from PIL import Image
+import os
 
 # Avoid greedy memory allocation to allow shared GPU usage
 gpus = tf.config.experimental.list_physical_devices('GPU')
@@ -23,7 +25,7 @@ for gpu in gpus:
 
 
 LOG_DIR = 'logs'
-BATCH_SIZE = 64
+BATCH_SIZE = 32
 NUM_CLASSES = 20
 RESIZE_TO = 224
 TRAIN_SIZE = 12786
@@ -37,9 +39,12 @@ def parse_proto_example(proto):
   example = tf.io.parse_single_example(proto, keys_to_features)
   example['image'] = tf.image.decode_jpeg(example['image/encoded'], channels=3)
   example['image'] = tf.image.convert_image_dtype(example['image'], dtype=tf.uint8)
-  example['image'] = tf.image.resize(example['image'], tf.constant([RESIZE_TO, RESIZE_TO]))
+  example['image'] = tf.image.resize(example['image'], tf.constant([RESIZE_TO, RESIZE_TO]), method='nearest')
   return example['image'], tf.one_hot(example['image/label'], depth=NUM_CLASSES)
 
+
+def normalize(image, label):
+  return tf.image.per_image_standardization(image), label
 
 
 def create_dataset(filenames, batch_size):
@@ -53,22 +58,23 @@ def create_dataset(filenames, batch_size):
     .batch(batch_size)\
     .prefetch(tf.data.AUTOTUNE)
 
-def exp_decay(epoch,lr):
-  initial_lrate = 0.1
-  k = 0.3
-  lrate = initial_lrate * math.exp(-k*epoch)
-  print(f'{lrate}')
-  return lrate
-
 
 def build_model():
-  inputs = tf.keras.Input(shape=(RESIZE_TO, RESIZE_TO, 3))
-  x = tf.keras.layers.experimental.preprocessing.RandomRotation(factor=(0, 0.02))(inputs)
-  model = EfficientNetB0(input_tensor=x,include_top=False,pooling='avg', weights='imagenet')
-  model.trainable=False
-  x = tf.keras.layers.Flatten()(model.output)
-  outputs = tf.keras.layers.Dense(NUM_CLASSES, activation = tf.keras.activations.softmax)(x)
+  inputs = tf.keras.Input(shape=(224, 224, 3))
+  img_aug = tf.keras.layers.GaussianNoise(0.1)(inputs)
+  model = tf.keras.applications.EfficientNetB0(include_top=False, input_tensor=img_aug, weights='imagenet')
+  model.trainable = False
+  x = tf.keras.layers.GlobalAveragePooling2D()(model.output)
+  outputs = tf.keras.layers.Dense(NUM_CLASSES, activation=tf.keras.activations.softmax)(x)
   return tf.keras.Model(inputs=inputs, outputs=outputs)
+
+
+def exp_decay(epoch):
+    initial_rate = 0.01
+    k = 0.3
+    lr = initial_rate * exp(-k*epoch)
+    print(f'{lr}')
+    return lr
 
 
 def main():
@@ -80,9 +86,15 @@ def main():
   train_size = int(TRAIN_SIZE * 0.7 / BATCH_SIZE)
   train_dataset = dataset.take(train_size)
   validation_dataset = dataset.skip(train_size)
-
   model = build_model()
-  print(model.summary())
+
+  for x, y in dataset.take(1):
+    for j in x:
+      print(j)
+      #tf.keras.preprocessing.image.save_img(path=LOG_DIR, x=j, file_format='.jpg')
+      img = Image.fromarray(j.numpy(), 'RGB')
+      img.save('img.jpg')
+      break
 
   model.compile(
     optimizer=tf.optimizers.Adam(),
@@ -100,7 +112,6 @@ def main():
       LearningRateScheduler(exp_decay)
     ]
   )
-
 
 if __name__ == '__main__':
     main()
