@@ -14,7 +14,6 @@ import time
 from tensorflow.python import keras as keras
 from tensorflow.python.keras.callbacks import LearningRateScheduler
 from math import exp
-from PIL import Image
 import os
 
 # Avoid greedy memory allocation to allow shared GPU usage
