@@ -37,7 +37,7 @@ def parse_proto_example(proto):
   example = tf.io.parse_single_example(proto, keys_to_features)
   example['image'] = tf.image.decode_jpeg(example['image/encoded'], channels=3)
   example['image'] = tf.image.convert_image_dtype(example['image'], dtype=tf.uint8)
-  example['image'] = tf.image.resize(example['image'], tf.constant([RESIZE_TO, RESIZE_TO]), method='nearest')
+  example['image'] = tf.image.resize(example['image'], tf.constant([RESIZE_TO, RESIZE_TO]))
   return example['image'], tf.one_hot(example['image/label'], depth=NUM_CLASSES)
 
 
@@ -59,7 +59,7 @@ def create_dataset(filenames, batch_size):
 
 def build_model():
   inputs = tf.keras.Input(shape=(224, 224, 3))
-  img_aug = tf.keras.layers.GaussianNoise(0.008)(inputs)
+  img_aug = tf.keras.layers.experimental.preprocessing.RandomRotation(factor=(0.5,0.5), interpolation='nearest')(inputs)
   model = tf.keras.applications.EfficientNetB0(include_top=False, input_tensor=img_aug, weights='imagenet')
   model.trainable = False
   x = tf.keras.layers.GlobalAveragePooling2D()(model.output)
@@ -85,9 +85,7 @@ def main():
   train_dataset = dataset.take(train_size)
   validation_dataset = dataset.skip(train_size)
   model = build_model()
-
  
-
   model.compile(
     optimizer=tf.optimizers.Adam(),
     loss=tf.keras.losses.categorical_crossentropy,
