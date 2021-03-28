@@ -47,10 +47,10 @@
 
 - Для метрики качества
 
- ![alt text](rando2.jpg)
+ ![alt text](random2.jpg)
    
    График метрики качества
-  ![SVG example](./rando2.svg)
+  ![SVG example](./random2.svg)
   
   - Для функции потерь
   
