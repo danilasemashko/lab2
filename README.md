@@ -32,6 +32,8 @@
    
    График метрики качества
   ![SVG example](./random.svg)
+  - Для функции потерь
+   ![alt text](random1.jpg)
   
   График функции потерь
   ![SVG example](./random1.svg)
