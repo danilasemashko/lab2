@@ -31,7 +31,7 @@ def parse_proto_example(proto):
   example['image'] = tf.image.decode_jpeg(example['image/encoded'], channels=3)
   example['image'] = tf.image.convert_image_dtype(example['image'], dtype=tf.uint8)
 
-  example['image'] = tf.image.resize(example['image'], tf.constant([250, 250]))
+  example['image'] = tf.image.resize(example['image'], tf.constant([230, 230]))
   return example['image'], tf.one_hot(example['image/label'], depth=NUM_CLASSES)
 
 
