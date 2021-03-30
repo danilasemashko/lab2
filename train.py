@@ -76,7 +76,19 @@ def exp_decay(epoch):
     lr = initial_rate * exp(-k*epoch)
     print(f'{lr}')
     return lr
+  
+def unfreeze_model(model):
+   # We unfreeze the top 20 layers while leaving BatchNorm layers frozen
+   for layer in model.layers:
+       if not isinstance(layer, layers.BatchNormalization):
+           layer.trainable = True
 
+   optimizer = tf.keras.optimizers.Adam()
+   model.compile(
+       optimizer=optimizer, loss="categorical_crossentropy", metrics=["accuracy"]
+   ) 
+  
+  
 
 def main():
   args = argparse.ArgumentParser()
@@ -89,18 +101,7 @@ def main():
   validation_dataset = dataset.skip(train_size)
   model = build_model()
   
-  def unfreeze_model(model):
-    # We unfreeze the top 20 layers while leaving BatchNorm layers frozen
-    for layer in model.layers:
-        if not isinstance(layer, layers.BatchNormalization):
-            layer.trainable = True
-
-    optimizer = tf.keras.optimizers.Adam(learning_rate=1e-4)
-    model.compile(
-    optimizer=tf.optimizers.Adam(),
-    loss=tf.keras.losses.categorical_crossentropy,
-    metrics=[tf.keras.metrics.categorical_accuracy],
-  )
+ 
   unfreeze_model(model)
 
   log_dir='{}/owl-{}'.format(LOG_DIR, time.time())
