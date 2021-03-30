@@ -88,12 +88,20 @@ def main():
   train_dataset = dataset.take(train_size)
   validation_dataset = dataset.skip(train_size)
   model = build_model()
+  
+  def unfreeze_model(model):
+    # We unfreeze the top 20 layers while leaving BatchNorm layers frozen
+    for layer in model.layers:
+        if not isinstance(layer, layers.BatchNormalization):
+            layer.trainable = True
 
-  model.compile(
+    optimizer = tf.keras.optimizers.Adam(learning_rate=1e-4)
+    model.compile(
     optimizer=tf.optimizers.Adam(),
     loss=tf.keras.losses.categorical_crossentropy,
     metrics=[tf.keras.metrics.categorical_accuracy],
   )
+  unfreeze_model(model)
 
   log_dir='{}/owl-{}'.format(LOG_DIR, time.time())
   model.fit(
