@@ -70,6 +70,7 @@ def build_model():
   img_aug = tf.keras.layers.GaussianNoise(0.01)(img_aug)
   model = tf.keras.applications.EfficientNetB0(include_top=False, input_tensor=img_aug, weights='imagenet')
   model.trainable = False
+  
    for layer in model.layers:
         if not isinstance(layer, layers.BatchNormalization):
             layer.trainable = True
