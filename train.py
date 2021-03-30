@@ -99,11 +99,9 @@ def main():
   train_size = int(TRAIN_SIZE * 0.7 / BATCH_SIZE)
   train_dataset = dataset.take(train_size)
   validation_dataset = dataset.skip(train_size)
-  model = build_model()
-  
- 
-  unfreeze_model(model)
 
+  unfreeze_model(model)
+  model = build_model()
   log_dir='{}/owl-{}'.format(LOG_DIR, time.time())
   model.fit(
     train_dataset,
