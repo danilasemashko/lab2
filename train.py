@@ -37,7 +37,7 @@ def parse_proto_example(proto):
   example = tf.io.parse_single_example(proto, keys_to_features)
   example['image'] = tf.image.decode_jpeg(example['image/encoded'], channels=3)
   example['image'] = tf.image.convert_image_dtype(example['image'], dtype=tf.uint8)
-  example['image'] = tf.image.resize(example['image'], tf.constant([230, 230]))
+  example['image'] = tf.image.resize(example['image'], tf.constant([350, 350]))
   return example['image'], tf.one_hot(example['image/label'], depth=NUM_CLASSES)
 
 
@@ -46,10 +46,7 @@ def normalize(image, label):
 
 
 def process_data(image, label):
-  img = tf.image.adjust_contrast(image, 2)
-  img = tf.image.adjust_brightness(img, 0.5)
-  return tf.image.random_crop(img, [224, 224, 3]), label
-
+  return tf.image.random_crop(image, [224, 224, 3]), label
 
 def create_dataset(filenames, batch_size):
   """Create dataset from tfrecords file
@@ -66,9 +63,7 @@ def create_dataset(filenames, batch_size):
 
 def build_model():
   inputs = tf.keras.Input(shape=(224, 224, 3))
-  img_aug = tf.keras.layers.experimental.preprocessing.RandomRotation(factor=0.02, fill_mode='constant', fill_value=255)(inputs)
-  img_aug = tf.keras.layers.GaussianNoise(0.007)(img_aug)
-  model = tf.keras.applications.EfficientNetB0(include_top=False, input_tensor=img_aug, weights='imagenet')
+  model = tf.keras.applications.EfficientNetB0(include_top=False, input_tensor=inputs, weights='imagenet')
   model.trainable = False
   x = tf.keras.layers.GlobalAveragePooling2D()(model.output)
   outputs = tf.keras.layers.Dense(NUM_CLASSES, activation=tf.keras.activations.softmax)(x)
@@ -76,7 +71,7 @@ def build_model():
 
 
 def exp_decay(epoch):
-    initial_rate = 0.1
+    initial_rate = 0.01
     k = 0.3
     lr = initial_rate * exp(-k*epoch)
     print(f'{lr}')
