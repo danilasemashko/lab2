@@ -37,7 +37,7 @@ def parse_proto_example(proto):
   example = tf.io.parse_single_example(proto, keys_to_features)
   example['image'] = tf.image.decode_jpeg(example['image/encoded'], channels=3)
   example['image'] = tf.image.convert_image_dtype(example['image'], dtype=tf.uint8)
-  example['image'] = tf.image.resize(example['image'], tf.constant([250, 250]))
+  example['image'] = tf.image.resize(example['image'], tf.constant([230, 230]))
   return example['image'], tf.one_hot(example['image/label'], depth=NUM_CLASSES)
 
 
@@ -66,27 +66,27 @@ def create_dataset(filenames, batch_size):
 
 def build_model():
   inputs = tf.keras.Input(shape=(224, 224, 3))
-  img_aug = tf.keras.layers.experimental.preprocessing.RandomRotation(factor=0.05, fill_mode='constant', fill_value=255)(inputs)
-  img_aug = tf.keras.layers.GaussianNoise(0.01)(img_aug)
+  img_aug = tf.keras.layers.experimental.preprocessing.RandomRotation(factor=0, fill_mode='constant', fill_value=255)(inputs)
+  img_aug = tf.keras.layers.GaussianNoise(0.007)(img_aug)
   model = tf.keras.applications.EfficientNetB0(include_top=False, input_tensor=img_aug, weights='imagenet')
   model.trainable = False
-  
-   for layer in model.layers:
-        if not isinstance(layer, layers.BatchNormalization):
-            layer.trainable = True
-            
   x = tf.keras.layers.GlobalAveragePooling2D()(model.output)
   outputs = tf.keras.layers.Dense(NUM_CLASSES, activation=tf.keras.activations.softmax)(x)
   return tf.keras.Model(inputs=inputs, outputs=outputs)
 
 
 def exp_decay(epoch):
-    initial_rate = 0.1
+    initial_rate = 0.01
     k = 0.3
     lr = initial_rate * exp(-k*epoch)
     print(f'{lr}')
     return lr
 
+def unfreeze_model(model):
+  for layer in model.layers:
+    if not isinstance(layer, tf.keras.layers.BatchNormalization):
+      layer.trainable = True
+  
 
 def main():
   args = argparse.ArgumentParser()
@@ -98,7 +98,7 @@ def main():
   train_dataset = dataset.take(train_size)
   validation_dataset = dataset.skip(train_size)
   model = build_model()
-
+  
   model.compile(
     optimizer=tf.optimizers.Adam(),
     loss=tf.keras.losses.categorical_crossentropy,
@@ -108,11 +108,26 @@ def main():
   log_dir='{}/owl-{}'.format(LOG_DIR, time.time())
   model.fit(
     train_dataset,
-    epochs=50,
+    epochs=20,
     validation_data=validation_dataset,
     callbacks=[
       tf.keras.callbacks.TensorBoard(log_dir),
       LearningRateScheduler(exp_decay)
+    ]
+  )
+  
+  unfreeze_model(model)
+  model.compile(
+    optimizer=tf.optimizers.Adam(lr=2e-7),
+    loss=tf.keras.losses.categorical_crossentropy,
+    metrics=[tf.keras.metrics.categorical_accuracy],
+  )
+  model.fit(
+    train_dataset,
+    epochs=15,
+    validation_data=validation_dataset,
+    callbacks=[
+      tf.keras.callbacks.TensorBoard(log_dir),
     ]
   )
 
