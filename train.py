@@ -98,7 +98,7 @@ def main():
   train_dataset = dataset.take(train_size)
   validation_dataset = dataset.skip(train_size)
   model = build_model()
-  
+  model.summary()
   model.compile(
     optimizer=tf.optimizers.Adam(),
     loss=tf.keras.losses.categorical_crossentropy,
@@ -108,7 +108,7 @@ def main():
   log_dir='{}/owl-{}'.format(LOG_DIR, time.time())
   model.fit(
     train_dataset,
-    epochs=20,
+    epochs=2,
     validation_data=validation_dataset,
     callbacks=[
       tf.keras.callbacks.TensorBoard(log_dir),
@@ -116,7 +116,8 @@ def main():
     ]
   )
   
-  unfreeze_model(model)
+  unfreeze_model(model) 
+  model.summary()
   model.compile(
     optimizer=tf.optimizers.Adam(lr=2e-7),
     loss=tf.keras.losses.categorical_crossentropy,
@@ -124,7 +125,7 @@ def main():
   )
   model.fit(
     train_dataset,
-    epochs=15,
+    epochs=2,
     validation_data=validation_dataset,
     callbacks=[
       tf.keras.callbacks.TensorBoard(log_dir),
