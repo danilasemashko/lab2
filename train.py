@@ -66,7 +66,7 @@ def create_dataset(filenames, batch_size):
 
 def build_model():
   inputs = tf.keras.Input(shape=(224, 224, 3))
-  img_aug = tf.keras.layers.experimental.preprocessing.RandomRotation(factor=0, fill_mode='constant', fill_value=255)(inputs)
+  img_aug = tf.keras.layers.experimental.preprocessing.RandomRotation(factor=0.001, fill_mode='constant', fill_value=255)(inputs)
   img_aug = tf.keras.layers.GaussianNoise(0.007)(img_aug)
   model = tf.keras.applications.EfficientNetB0(include_top=False, input_tensor=img_aug, weights='imagenet')
   model.trainable = False
@@ -108,7 +108,7 @@ def main():
   log_dir='{}/owl-{}'.format(LOG_DIR, time.time())
   model.fit(
     train_dataset,
-    epochs=2,
+    epochs=10,
     validation_data=validation_dataset,
     callbacks=[
       tf.keras.callbacks.TensorBoard(log_dir),
@@ -119,13 +119,13 @@ def main():
   unfreeze_model(model) 
   model.summary()
   model.compile(
-    optimizer=tf.optimizers.Adam(lr=2e-7),
+    optimizer=tf.optimizers.Adam(lr=2e-9),
     loss=tf.keras.losses.categorical_crossentropy,
     metrics=[tf.keras.metrics.categorical_accuracy],
   )
   model.fit(
     train_dataset,
-    epochs=2,
+    epochs=15,
     validation_data=validation_dataset,
     callbacks=[
       tf.keras.callbacks.TensorBoard(log_dir),
