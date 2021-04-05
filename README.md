@@ -58,4 +58,6 @@ img_aug = tf.keras.layers.GaussianNoise(0.007)(img_aug)
  - График функции потерь
   ![SVG example](./fine_loss.svg)
   
+ # Анализ результатов
+ ###  С использованием техники Fine Tuning мы смогли добиться точности равной 89,09% , что на 0,03% меньше чем при использовании техники Transfer Learning.
  
