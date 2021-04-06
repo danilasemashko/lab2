@@ -23,7 +23,7 @@ for gpu in gpus:
 
 
 LOG_DIR = 'logs'
-BATCH_SIZE = 16
+BATCH_SIZE = 15
 NUM_CLASSES = 20
 RESIZE_TO = 224
 TRAIN_SIZE = 12786
@@ -37,7 +37,7 @@ def parse_proto_example(proto):
   example = tf.io.parse_single_example(proto, keys_to_features)
   example['image'] = tf.image.decode_jpeg(example['image/encoded'], channels=3)
   example['image'] = tf.image.convert_image_dtype(example['image'], dtype=tf.uint8)
-  example['image'] = tf.image.resize(example['image'], tf.constant([350, 350]))
+  example['image'] = tf.image.resize(example['image'], tf.constant([230, 230]))
   return example['image'], tf.one_hot(example['image/label'], depth=NUM_CLASSES)
 
 
@@ -66,7 +66,8 @@ def create_dataset(filenames, batch_size):
 
 def build_model():
   inputs = tf.keras.Input(shape=(224, 224, 3))
-  img_aug = tf.keras.layers.GaussianNoise(0.01)(inputs)
+  img_aug = tf.keras.layers.experimental.preprocessing.RandomRotation(factor=0.05, fill_mode='constant', fill_value=255)(inputs)
+  img_aug = tf.keras.layers.GaussianNoise(0.007)(img_aug)
   model = tf.keras.applications.EfficientNetB0(include_top=False, input_tensor=img_aug, weights='imagenet')
   model.trainable = False
   x = tf.keras.layers.GlobalAveragePooling2D()(model.output)
@@ -117,7 +118,7 @@ def main():
   )
   
   unfreeze_model(model)
-  
+
   model.compile(
     optimizer=tf.optimizers.Adam(lr=2e-7),
     loss=tf.keras.losses.categorical_crossentropy,
